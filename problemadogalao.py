@@ -14,9 +14,13 @@ class Estado:
 
 
     def __str__(self):
-        return self.representacao.__str__()
+        repr  = "\t%d\t%d\t%d\t\n" % (self.representacao[0][0], self.representacao[0][1], self.representacao[0][2])
+        repr += "\t%d\t%d\t%d\t\n" % (self.representacao[1][0], self.representacao[1][1], self.representacao[1][2])
+        repr += "\t%d\t%d\t%d\t\n" % (self.representacao[2][0], self.representacao[2][1], self.representacao[2][2])
+        repr += "\n"
+        return repr
 
-    
+
     def __eq__(self, estado):
         if self.representacao == estado.representacao:
             return True
@@ -61,6 +65,7 @@ class Tabuleiro:
 
     def __init__(self, estadoInicial, estadoFinal):
         self.estadoAtual = estadoInicial
+        self.estadoInicial = estadoInicial
         self.movimentosPossiveis = list([
             self.moverAbaixo,
             self.moverAcima,
@@ -169,103 +174,50 @@ class Tabuleiro:
         return False
 
 
-    def encontrarSolucao(self):  
-        self.encontrouSolucao = False
-        self.estadosVisitados = list([self.estadoAtual])
+    def buscaLargura(self):
 
-        #while not self.alcancaObjetivo(self.estadoAtual): 
-        self.avaliar(self.estadoAtual.copy(), 1)
-        print("fim")
-        '''
-        estadosCandidados = list()    
-        estadosFilhos = self.getEstadosFilhos(
-            self.estadoAtual
-        )
+        self.estadosVisitados = [self.estadoAtual]
+        lista = [self.estadoAtual]
 
-        for estado in estadosFilhos:                
-            if estado not in estadosVisitados:
-                estadosCandidados.append(estado)                    
+        while (len(lista) > 0):
+            no = lista.pop(0)
 
-        if estadosCandidados.__len__() == 0:
-            print("sem solucao")
-            break
+            if self.alcancaObjetivo(no):
+                return no
 
-        print('%s %s' %(self.estadoAtual, self.estadoAtual.acao))
-        estadosVisitados.append(estadosCandidados[0])
-        self.estadoAtual = estadosCandidados[0]
-        '''
-        
+            else:
+                filhos = self.getEstadosFilhos(no)
+                for f in filhos:                        
+                    lista.append(f)
 
+    
+    def encontrarCaminho(self):
+        estado = self.buscaLargura()
+        pilha = []
 
-    def avaliar(self, estadoAtual, stack):
-        #print("start - " + str(stack))
-        if self.alcancaObjetivo(estadoAtual):
-            self.encontrouSolucao = True
-            print("encontrou ----------------------------")
-            return 
-        
-        if self.encontrouSolucao:
-            #print("?")
-            return
+        while estado != self.estadoInicial:
+            pilha.append(estado.copy())
+            estado = estado.pai
 
-        estadosCandidados = list()    
-        estadosFilhos = self.getEstadosFilhos(
-            estadoAtual
-        )
-
-        for estado in estadosFilhos:                
-            #if estado not in self.estadosVisitados:
-                estadosCandidados.append(estado)                    
-
-        # print(estadosCandidados.__len__())
-        if estadosCandidados.__len__() == 0:
-            #print("n deu - " + str(stack))
-            return                    
-
-        print('%s %s' %(estadoAtual, estadoAtual.acao))
-        for i in range(estadosCandidados.__len__()):
-            #print("letsgo")
-            self.estadosVisitados.append(estadosCandidados[i])
-            #print("biroliro")
-            self.avaliar(estadosCandidados[i].copy(), stack+1)
-            #print("prox")
-        #print("ui")            
-
-    #def verificarCaminho(self, estadoVerificar, estadosVisitados):
-
+        while len(pilha) > 0:
+            print(pilha.pop())
 
 
 tabuleiro = Tabuleiro(
     Estado(
-        #[[1, 2, 3], [8, -1, 6], [7, 4, 5]],
-        #[[-1, 2], [1, 3]],
-        [[3, -1], [2, 1]],
+        [[1, 5, 2], [7, 4, 3], [8, 6, -1]],
         None, 
         None, 
         0,
         0,
-        #[1, 1]
-        [0, 0]
+        [2, 2]
     ),
     Estado(
-        #[[1, 2, 3], [4, 5, 6], [7, 8, -1]]
-        [[1, 2], [3, -1]]    
+        [[1, 2, 3], [4, 5, 6], [7, 8, -1]]
     )
 )    
 
-import sys
-sys.setrecursionlimit(9999)
-try:
-    print(tabuleiro.encontrarSolucao())
-except:
-    print("except")
+print(tabuleiro.estadoInicial)
+tabuleiro.encontrarCaminho()
 
-print("n deu erro")
-
-
-# 3 coisas
-# 1. Pq o script ta parando do nada, qual o motivo de ter parado?
-# 2. pq a stack esta sendo printada linearmente e nao esta diminiindpo nos returns
-# 3. Apagar os estados visitados ao dar o return, já que sao posibilidades a se visitar novamente ja que n seguiu certo caminho
-# 4. Pq está printando None nas acoes dos estados?
 
