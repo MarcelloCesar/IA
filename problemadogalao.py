@@ -1,12 +1,12 @@
 class Estado:
-
+    
     def __init__(self, representacao, pai=None, acao=None, custo=None, profundidade=None, ponteiro=None):
         self.representacao = representacao
         self.pai = pai
         self.acao = acao
         self.custo = custo
         self.profundidade = profundidade
-        self.ponteiro = ponteiro
+        self.ponteiro = ponteiro        
 
 
     def __repr__(self):
@@ -60,7 +60,6 @@ class Estado:
         return repr
 
 
-
 class Tabuleiro:
 
     def __init__(self, estadoInicial, estadoFinal):
@@ -85,6 +84,8 @@ class Tabuleiro:
             novoEstado.ponteiro = [ponteiro[0], ponteiro[1] - 1]
             novoEstado[novoEstado.ponteiro] = -1
             novoEstado.acao = self.moverEsquerda
+            novoEstado.profundidade += 1
+            novoEstado.custo += 1
             
             if novoEstado.ponteiro[1] < 0:
                 return None
@@ -105,6 +106,8 @@ class Tabuleiro:
             novoEstado.ponteiro = [ponteiro[0], ponteiro[1] + 1]
             novoEstado[novoEstado.ponteiro] = -1
             novoEstado.acao = self.moverDireita
+            novoEstado.profundidade += 1
+            novoEstado.custo += 1
             
             if novoEstado.ponteiro[1] > 2:
                 return None
@@ -125,6 +128,8 @@ class Tabuleiro:
             novoEstado.ponteiro = [ponteiro[0] - 1, ponteiro[1]]
             novoEstado[novoEstado.ponteiro] = -1
             novoEstado.acao = self.moverAcima
+            novoEstado.profundidade += 1
+            novoEstado.custo += 1
             
             if novoEstado.ponteiro[0] < 0:
                 return None
@@ -146,6 +151,8 @@ class Tabuleiro:
             novoEstado.ponteiro = novaPosicao
             novoEstado[novoEstado.ponteiro] = -1
             novoEstado.acao = self.moverAbaixo
+            novoEstado.profundidade += 1
+            novoEstado.custo += 1
             
             if novoEstado.ponteiro[0] > 2:
                 return None               
@@ -191,16 +198,86 @@ class Tabuleiro:
                     lista.append(f)
 
     
+    def buscaProfundidade(self):
+
+        self.estadosVisitados = [self.estadoAtual]
+        lista = [self.estadoAtual]
+
+        while (len(lista) > 0):
+            no = lista.pop()
+
+            if self.alcancaObjetivo(no):
+                return no
+
+            else:
+                filhos = self.getEstadosFilhos(no)
+                for f in filhos:                        
+                    lista.append(f)
+
+
+    def buscaProfundidadeLimitada(self, limite):
+    
+        self.estadosVisitados = [self.estadoAtual]
+        lista = [self.estadoAtual]
+
+        while (len(lista) > 0):
+            no = lista.pop()
+
+            if self.alcancaObjetivo(no):
+                return no
+
+            elif no.profundidade < limite:
+                filhos = self.getEstadosFilhos(no)
+                for f in filhos:                        
+                    lista.append(f)
+
+
     def encontrarCaminho(self):
-        estado = self.buscaLargura()
-        pilha = []
+        # estado = self.buscaAprofundamentoIterativo(self.estadoAtual)
+        # estado = self.buscaLargura()
+        # estado = self.buscaProfundidade(self.estadoAtual)
+        # estado = self.buscaProfundidadeLimitada(self.estadoAtual)
+        estado = self.buscaCustoUniforme(self.estadoAtual)
 
-        while estado != self.estadoInicial:
-            pilha.append(estado.copy())
-            estado = estado.pai
+        if estado is not None:
+            pilha = []
 
-        while len(pilha) > 0:
-            print(pilha.pop())
+            while estado != self.estadoInicial:
+                pilha.append(estado.copy())
+                estado = estado.pai
+
+            while len(pilha) > 0:
+                print(pilha.pop())
+
+    
+    def buscaAprofundamentoIterativo(self, estadoInicial):
+        profundidade = 0
+
+        while True:
+            self.estadoAtual = estadoInicial
+            resultado = self.buscaProfundidadeLimitada(profundidade)
+            profundidade += 1
+
+            if(resultado is not None):
+                return resultado
+            
+
+    def buscaCustoUniforme(self, estadoInicial):
+
+        lista = [self.estadoAtual]
+
+        while (len(lista) > 0):
+            lista = sorted(lista, key=lambda x: x.custo)
+            no = lista.pop(0)           
+
+            if self.alcancaObjetivo(no):
+                return no
+
+            else:
+                filhos = self.getEstadosFilhos(no)
+                for f in filhos:                        
+                    lista.append(f)
+            
 
 
 tabuleiro = Tabuleiro(
